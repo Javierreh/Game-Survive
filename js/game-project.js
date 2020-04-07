@@ -31,6 +31,8 @@ function main() {
 
 function update() {
   movePlayer();
+  fixPlayerPosition();
+
 }
 
 function draw() {
@@ -97,5 +99,20 @@ function movePlayer() {
   }
   if (Keys.right) {
     player.x += player.move;
+  }
+}
+
+function fixPlayerPosition() {
+  if (player.x < startX + sizeElement) {
+    player.x = startX + sizeElement;
+  }
+  if (player.x > lastX - sizeElement * 2) {
+    player.x = lastX - sizeElement * 2;
+  }
+  if (player.y < startY + sizeElement) {
+    player.y = startY + sizeElement;
+  }
+  if (player.y > lastY - sizeElement * 2) {
+    player.y = lastY - sizeElement * 2;
   }
 }
