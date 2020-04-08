@@ -40,7 +40,6 @@ function main() {
 function update() {
   movePlayer();
   fixPlayerPosition();
-  // console.log(bullets);
   shootBullet();
   moveBullets();
 }
@@ -48,7 +47,7 @@ function update() {
 function draw() {
   drawBackground();
   drawPlayer();
-  bullets.forEach(bullet => drawBullets(bullet));
+  drawBullets();
 }
 
 function drawBackground() {
@@ -149,6 +148,17 @@ function shootBullet() {
   else if (dx !== 0 || dy !== 0) createBullet(dx, dy);
 }
 
+function checkLastBulletTime() {
+  if (bullets.length > 0) {
+    const currentDate = new Date();
+    const lastBullet = bullets[bullets.length - 1];
+    if (currentDate - lastBullet.createTime < millisecodsBetweenBullets) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function createBullet(dx, dy) {
   const newBullet = { 
     x: player.x + player.size / 2,
@@ -161,22 +171,13 @@ function createBullet(dx, dy) {
   bullets.push(newBullet);
 }
 
-function checkLastBulletTime() {
-  if (bullets.length > 0) {
-    const currentDate = new Date();
-    const lastBullet = bullets[bullets.length - 1];
-    if (currentDate - lastBullet.createTime < millisecodsBetweenBullets) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function drawBullets(bullet) {
-  ctx.beginPath();
-  ctx.arc(bullet.x, bullet.y, bullet.size, 0, 2 * Math.PI);
-  ctx.fillStyle = "gold";
-  ctx.fill();
+function drawBullets() {
+  bullets.forEach(bullet => {
+    ctx.beginPath();
+    ctx.arc(bullet.x, bullet.y, bullet.size, 0, 2 * Math.PI);
+    ctx.fillStyle = "gold";
+    ctx.fill();
+  });
 }
 
 function moveBullets() {
