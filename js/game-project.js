@@ -11,8 +11,8 @@ const lastY = startY + gameAreaSize;
 const player = {
   x: sizeElement * 7 + startX,
   y: sizeElement * 7 + startY,
-  size: 40,
-  move: 5
+  size: sizeElement,
+  velocity: 5
 };
 
 const Keys = {
@@ -27,7 +27,7 @@ const Keys = {
 };
 
 const bullets = [];
-let bulletMovement = 10;
+let bulletVelocity = 10;
 let millisecodsBetweenBullets = 250;
 
 setInterval(main, 33);
@@ -49,6 +49,28 @@ function draw() {
   drawPlayer();
   drawBullets();
 }
+
+window.onkeydown = function(event) {
+  if (event.keyCode === 65) Keys.left = true;
+  if (event.keyCode === 87) Keys.up = true;
+  if (event.keyCode === 68) Keys.right = true;
+  if (event.keyCode === 83) Keys.down = true;
+  if (event.keyCode === 37) Keys.shootLeft = true;
+  if (event.keyCode === 38) Keys.shootUp = true;
+  if (event.keyCode === 39) Keys.shootRight = true;
+  if (event.keyCode === 40) Keys.shootDown = true;
+};
+
+window.onkeyup = function(event) {
+  if (event.keyCode === 65) Keys.left = false;
+  if (event.keyCode === 87) Keys.up = false;
+  if (event.keyCode === 68) Keys.right = false;
+  if (event.keyCode === 83) Keys.down = false;
+  if (event.keyCode === 37) Keys.shootLeft = false;
+  if (event.keyCode === 38) Keys.shootUp = false;
+  if (event.keyCode === 39) Keys.shootRight = false;
+  if (event.keyCode === 40) Keys.shootDown = false;
+};
 
 function drawBackground() {
   // Clean background
@@ -84,40 +106,20 @@ function drawPlayer() {
   ctx.fillRect(player.x, player.y, player.size, player.size);
 }
 
-window.onkeydown = function(event) {
-  if (event.keyCode === 65) Keys.left = true;
-  if (event.keyCode === 87) Keys.up = true;
-  if (event.keyCode === 68) Keys.right = true;
-  if (event.keyCode === 83) Keys.down = true;
-  if (event.keyCode === 37) Keys.shootLeft = true;
-  if (event.keyCode === 38) Keys.shootUp = true;
-  if (event.keyCode === 39) Keys.shootRight = true;
-  if (event.keyCode === 40) Keys.shootDown = true;
-};
-
-window.onkeyup = function(event) {
-  if (event.keyCode === 65) Keys.left = false;
-  if (event.keyCode === 87) Keys.up = false;
-  if (event.keyCode === 68) Keys.right = false;
-  if (event.keyCode === 83) Keys.down = false;
-  if (event.keyCode === 37) Keys.shootLeft = false;
-  if (event.keyCode === 38) Keys.shootUp = false;
-  if (event.keyCode === 39) Keys.shootRight = false;
-  if (event.keyCode === 40) Keys.shootDown = false;
-};
-
 function movePlayer() {
-  if (Keys.up) {
-    player.y -= player.move;
-  }
-  if (Keys.down) {
-    player.y += player.move;
-  }
-  if (Keys.left) {
-    player.x -= player.move;
-  }
-  if (Keys.right) {
-    player.x += player.move;
+  let dx = 0;
+  let dy = 0;
+  if (Keys.up) dy = -player.velocity; 
+  if (Keys.down) dy = player.velocity;
+  if (Keys.left) dx = -player.velocity;
+  if (Keys.right) dx = player.velocity;
+  if (dx !== 0 && dy !== 0) {
+    player.x += dx / 1.5;
+    player.y += dy / 1.5;
+  } 
+  else if (dx !== 0 || dy !== 0) {
+    player.x += dx;
+    player.y += dy;
   }
 }
 
@@ -140,10 +142,10 @@ function shootBullet() {
   if (!checkLastBulletTime()) return false;
   let dx = 0;
   let dy = 0;
-  if (Keys.shootUp) dy = -bulletMovement;
-  if (Keys.shootDown) dy = bulletMovement;
-  if (Keys.shootLeft) dx = -bulletMovement;
-  if (Keys.shootRight) dx = bulletMovement;
+  if (Keys.shootUp) dy = -bulletVelocity;
+  if (Keys.shootDown) dy = bulletVelocity;
+  if (Keys.shootLeft) dx = -bulletVelocity;
+  if (Keys.shootRight) dx = bulletVelocity;
   if (dx !== 0 && dy !== 0) createBullet(dx / 1.5, dy / 1.5);
   else if (dx !== 0 || dy !== 0) createBullet(dx, dy);
 }
