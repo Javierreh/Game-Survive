@@ -12,8 +12,8 @@ const player = {
   x: sizeElement * 7 + startX,
   y: sizeElement * 7 + startY,
   size: 40,
-  move: 10
-}
+  move: 5
+};
 
 let Keys = {
   up: false,
@@ -22,7 +22,11 @@ let Keys = {
   right: false
 };
 
-setInterval(main, 100);
+const bulletMovement = 10;
+const bullets = [];
+let millisecodsBetweenBullets = 250;
+
+setInterval(main, 33);
 
 function main() {
   update();
@@ -32,12 +36,14 @@ function main() {
 function update() {
   movePlayer();
   fixPlayerPosition();
-
+  // console.log(bullets);
+  moveBullets();
 }
 
 function draw() {
   drawBackground();
   drawPlayer();
+  bullets.forEach(bullet => drawBullets(bullet));
 }
 
 function drawBackground() {
@@ -45,13 +51,14 @@ function drawBackground() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Draw Game Area
-  ctx.fillStyle = "black";
   ctx.beginPath();
   ctx.rect(startX, startY, gameAreaSize, gameAreaSize);
+  ctx.strokeStyle = "black";
   ctx.stroke();
 
   // Draw background border
   // Top border
+  ctx.fillStyle = "black";
   ctx.fillRect(startX, startY, sizeElement * 6, sizeElement * 1);
   ctx.fillRect(lastX, startY, -sizeElement * 6, sizeElement * 1);
 
@@ -73,18 +80,24 @@ function drawPlayer() {
   ctx.fillRect(player.x, player.y, player.size, player.size);
 }
 
-window.onkeydown = function(event){
-  if (event.keyCode === 37) Keys.left = true;
-  if (event.keyCode === 38) Keys.up = true;
-  if (event.keyCode === 39) Keys.right = true;
-  if (event.keyCode === 40) Keys.down = true;
+window.onkeydown = function(event) {
+  if (event.keyCode === 65) Keys.left = true;
+  if (event.keyCode === 87) Keys.up = true;
+  if (event.keyCode === 68) Keys.right = true;
+  if (event.keyCode === 83) Keys.down = true;
+
+  if (event.keyCode === 37) createBullet(-bulletMovement, 0);
+  if (event.keyCode === 38) createBullet(0, -bulletMovement);
+  if (event.keyCode === 39) createBullet(bulletMovement, 0);
+  if (event.keyCode === 40) createBullet(0, bulletMovement);
+
 };
 
-window.onkeyup = function(event){
-  if (event.keyCode === 37) Keys.left = false;
-  if (event.keyCode === 38) Keys.up = false;
-  if (event.keyCode === 39) Keys.right = false;
-  if (event.keyCode === 40) Keys.down = false;
+window.onkeyup = function(event) {
+  if (event.keyCode === 65) Keys.left = false;
+  if (event.keyCode === 87) Keys.up = false;
+  if (event.keyCode === 68) Keys.right = false;
+  if (event.keyCode === 83) Keys.down = false;
 };
 
 function movePlayer() {
@@ -115,4 +128,42 @@ function fixPlayerPosition() {
   if (player.y > lastY - sizeElement * 2) {
     player.y = lastY - sizeElement * 2;
   }
+}
+
+function createBullet(dx, dy) {
+  const newBullet = { 
+    x: player.x + player.size / 2,
+    y: player.y + player.size / 2,
+    createTime: new Date(),
+    size: player.size / 6,
+    dx: dx,
+    dy: dy
+  }
+  if (checkBulletTime(newBullet)) {
+    bullets.push(newBullet);
+  }
+}
+
+function checkBulletTime(newBullet) {
+  if (bullets.length > 0) {
+    const lastBullet = bullets[bullets.length - 1];
+    if (newBullet.createTime - lastBullet.createTime < millisecodsBetweenBullets) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function drawBullets(bullet) {
+  ctx.beginPath();
+  ctx.arc(bullet.x, bullet.y, bullet.size, 0, 2 * Math.PI);
+  ctx.fillStyle = "gold";
+  ctx.fill();
+}
+
+function moveBullets() {
+  bullets.forEach(bullet => {
+    bullet.x += bullet.dx;
+    bullet.y += bullet.dy;
+  });
 }
