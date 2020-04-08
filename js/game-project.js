@@ -39,7 +39,6 @@ function main() {
 
 function update() {
   movePlayer();
-  fixPlayerPosition();
   shootBullet();
   moveBullets();
 }
@@ -121,9 +120,10 @@ function movePlayer() {
     player.x += dx;
     player.y += dy;
   }
+  limitPlayerPosition();
 }
 
-function fixPlayerPosition() {
+function limitPlayerPosition() {
   if (player.x < startX + sizeElement) {
     player.x = startX + sizeElement;
   }
@@ -183,8 +183,14 @@ function drawBullets() {
 }
 
 function moveBullets() {
-  bullets.forEach(bullet => {
+  bullets.forEach((bullet, i, arr) => {
     bullet.x += bullet.dx;
     bullet.y += bullet.dy;
+    if (bullet.x < startX + sizeElement ||
+        bullet.x > lastX - sizeElement ||
+        bullet.y < startY + sizeElement ||
+        bullet.y > lastY - sizeElement) {
+      arr.splice(i, 1);
+    }
   });
 }
