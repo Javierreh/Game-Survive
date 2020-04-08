@@ -15,15 +15,19 @@ const player = {
   move: 5
 };
 
-let Keys = {
+const Keys = {
   up: false,
   down: false,
   left: false,
-  right: false
+  right: false,
+  shootUp: false,
+  shootDown: false,
+  shootLeft: false,
+  shootRight: false
 };
 
-const bulletMovement = 10;
 const bullets = [];
+let bulletMovement = 10;
 let millisecodsBetweenBullets = 250;
 
 setInterval(main, 33);
@@ -37,6 +41,7 @@ function update() {
   movePlayer();
   fixPlayerPosition();
   // console.log(bullets);
+  shootBullet();
   moveBullets();
 }
 
@@ -56,7 +61,7 @@ function drawBackground() {
   ctx.strokeStyle = "black";
   ctx.stroke();
 
-  // Draw background border
+  // Draw background borders
   // Top border
   ctx.fillStyle = "black";
   ctx.fillRect(startX, startY, sizeElement * 6, sizeElement * 1);
@@ -85,12 +90,10 @@ window.onkeydown = function(event) {
   if (event.keyCode === 87) Keys.up = true;
   if (event.keyCode === 68) Keys.right = true;
   if (event.keyCode === 83) Keys.down = true;
-
-  if (event.keyCode === 37) createBullet(-bulletMovement, 0);
-  if (event.keyCode === 38) createBullet(0, -bulletMovement);
-  if (event.keyCode === 39) createBullet(bulletMovement, 0);
-  if (event.keyCode === 40) createBullet(0, bulletMovement);
-
+  if (event.keyCode === 37) Keys.shootLeft = true;
+  if (event.keyCode === 38) Keys.shootUp = true;
+  if (event.keyCode === 39) Keys.shootRight = true;
+  if (event.keyCode === 40) Keys.shootDown = true;
 };
 
 window.onkeyup = function(event) {
@@ -98,6 +101,10 @@ window.onkeyup = function(event) {
   if (event.keyCode === 87) Keys.up = false;
   if (event.keyCode === 68) Keys.right = false;
   if (event.keyCode === 83) Keys.down = false;
+  if (event.keyCode === 37) Keys.shootLeft = false;
+  if (event.keyCode === 38) Keys.shootUp = false;
+  if (event.keyCode === 39) Keys.shootRight = false;
+  if (event.keyCode === 40) Keys.shootDown = false;
 };
 
 function movePlayer() {
@@ -130,6 +137,18 @@ function fixPlayerPosition() {
   }
 }
 
+function shootBullet() {
+  if (!checkLastBulletTime()) return false;
+  let dx = 0;
+  let dy = 0;
+  if (Keys.shootUp) dy = -bulletMovement;
+  if (Keys.shootDown) dy = bulletMovement;
+  if (Keys.shootLeft) dx = -bulletMovement;
+  if (Keys.shootRight) dx = bulletMovement;
+  if (dx !== 0 && dy !== 0) createBullet(dx / 1.5, dy / 1.5);
+  else if (dx !== 0 || dy !== 0) createBullet(dx, dy);
+}
+
 function createBullet(dx, dy) {
   const newBullet = { 
     x: player.x + player.size / 2,
@@ -139,15 +158,14 @@ function createBullet(dx, dy) {
     dx: dx,
     dy: dy
   }
-  if (checkBulletTime(newBullet)) {
-    bullets.push(newBullet);
-  }
+  bullets.push(newBullet);
 }
 
-function checkBulletTime(newBullet) {
+function checkLastBulletTime() {
   if (bullets.length > 0) {
+    const currentDate = new Date();
     const lastBullet = bullets[bullets.length - 1];
-    if (newBullet.createTime - lastBullet.createTime < millisecodsBetweenBullets) {
+    if (currentDate - lastBullet.createTime < millisecodsBetweenBullets) {
       return false;
     }
   }
