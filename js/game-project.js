@@ -29,6 +29,7 @@ const Keys = {
 const bullets = [];
 let bulletVelocity = 10;
 let millisecodsBetweenBullets = 250;
+let lastBulletDate = null;
 
 setInterval(main, 33);
 
@@ -139,7 +140,7 @@ function limitPlayerPosition() {
 }
 
 function shootBullet() {
-  if (!checkLastBulletTime()) return false;
+  if (!checkLastBulletDate()) return false;
   let dx = 0;
   let dy = 0;
   if (Keys.shootUp) dy = -bulletVelocity;
@@ -150,13 +151,10 @@ function shootBullet() {
   else if (dx !== 0 || dy !== 0) createBullet(dx, dy);
 }
 
-function checkLastBulletTime() {
-  if (bullets.length > 0) {
-    const currentDate = new Date();
-    const lastBullet = bullets[bullets.length - 1];
-    if (currentDate - lastBullet.createTime < millisecodsBetweenBullets) {
-      return false;
-    }
+function checkLastBulletDate() {
+  const currentDate = new Date();
+  if (currentDate - lastBulletDate < millisecodsBetweenBullets) {
+    return false;
   }
   return true;
 }
@@ -165,11 +163,12 @@ function createBullet(dx, dy) {
   const newBullet = { 
     x: player.x + player.size / 2,
     y: player.y + player.size / 2,
-    createTime: new Date(),
+    createDate: new Date(),
     size: player.size / 6,
     dx: dx,
     dy: dy
   }
+  lastBulletDate = newBullet.createDate;
   bullets.push(newBullet);
 }
 
