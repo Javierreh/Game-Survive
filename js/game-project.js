@@ -27,6 +27,7 @@ const Keys = {
 };
 
 const bullets = [];
+let bulletSize = player.size / 6;
 let bulletVelocity = 10;
 let millisecodsBetweenBullets = 250;
 let lastBulletDate = null;
@@ -45,6 +46,7 @@ function update() {
 }
 
 function draw() {
+  cleanCanvas();
   drawBackground();
   drawPlayer();
   drawBullets();
@@ -72,10 +74,11 @@ window.onkeyup = function(event) {
   if (event.keyCode === 40) Keys.shootDown = false;
 };
 
-function drawBackground() {
-  // Clean background
+function cleanCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
 
+function drawBackground() {
   // Draw Game Area
   ctx.beginPath();
   ctx.rect(startX, startY, gameAreaSize, gameAreaSize);
@@ -164,7 +167,7 @@ function createBullet(dx, dy) {
     x: player.x + player.size / 2,
     y: player.y + player.size / 2,
     createDate: new Date(),
-    size: player.size / 6,
+    size: bulletSize,
     dx: dx,
     dy: dy
   }
