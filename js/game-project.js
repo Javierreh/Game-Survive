@@ -1,5 +1,9 @@
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+import {canvas, ctx, clearCanvas} from './canvas.js';
+import Background from './background.js';
+import Player from './player.js';
+const background = new Background();
+const player = new Player();
+
 
 const sizeElement = 40;
 const gameAreaSize = 600;
@@ -8,12 +12,14 @@ const lastX = startX + gameAreaSize;
 const startY = 0;
 const lastY = startY + gameAreaSize;
 
-const player = {
-  x: sizeElement * 7 + startX,
-  y: sizeElement * 7 + startY,
-  size: sizeElement,
-  velocity: 5
-};
+
+
+// const player = {
+//   x: sizeElement * 7 + startX,
+//   y: sizeElement * 7 + startY,
+//   size: sizeElement,
+//   velocity: 5
+// };
 
 const Keys = {
   up: false,
@@ -46,9 +52,9 @@ function update() {
 }
 
 function draw() {
-  cleanCanvas();
-  drawBackground();
-  drawPlayer();
+  clearCanvas();
+  background.draw(ctx);
+  player.draw(ctx);
   drawBullets();
 }
 
@@ -73,41 +79,6 @@ window.onkeyup = function(event) {
   if (event.keyCode === 39) Keys.shootRight = false;
   if (event.keyCode === 40) Keys.shootDown = false;
 };
-
-function cleanCanvas() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
-function drawBackground() {
-  // Draw Game Area
-  ctx.beginPath();
-  ctx.rect(startX, startY, gameAreaSize, gameAreaSize);
-  ctx.strokeStyle = "black";
-  ctx.stroke();
-
-  // Draw background borders
-  // Top border
-  ctx.fillStyle = "black";
-  ctx.fillRect(startX, startY, sizeElement * 6, sizeElement * 1);
-  ctx.fillRect(lastX, startY, -sizeElement * 6, sizeElement * 1);
-
-  // Bottom border
-  ctx.fillRect(startX, lastY, sizeElement * 6, -sizeElement * 1);
-  ctx.fillRect(lastX, lastY, -sizeElement * 6, -sizeElement * 1);
-
-  // Left border
-  ctx.fillRect(startX, startY, sizeElement * 1, sizeElement * 6);
-  ctx.fillRect(startX, lastY, sizeElement * 1, -sizeElement * 6);
-
-  // Right border
-  ctx.fillRect(lastX, startY, -sizeElement * 1, sizeElement * 6);
-  ctx.fillRect(lastX, lastY, -sizeElement * 1, -sizeElement * 6);
-}
-
-function drawPlayer() {
-  ctx.fillStyle = "darkgreen";
-  ctx.fillRect(player.x, player.y, player.size, player.size);
-}
 
 function movePlayer() {
   let dx = 0;
