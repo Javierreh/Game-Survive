@@ -7,11 +7,7 @@ export default class Player {
     this.x = 380;
     this.y = 280;
 
-    this.shotConfig = {
-      velocity: 10,
-      millisecodsBetweenShot: 250,
-      lastShotDate: null
-    }
+    this.shootVelocity = 10;
   }
 
   draw(ctx) {
@@ -55,30 +51,29 @@ export default class Player {
   shoot(keys) {
     let dx = 0;
     let dy = 0;
-    if (keys.shootUp) dy = -this.shotConfig.velocity;
-    if (keys.shootDown) dy = this.shotConfig.velocity;
-    if (keys.shootLeft) dx = -this.shotConfig.velocity;
-    if (keys.shootRight) dx = this.shotConfig.velocity;
+    if (keys.shootUp) dy = -this.shootVelocity;
+    if (keys.shootDown) dy = this.shootVelocity;
+    if (keys.shootLeft) dx = -this.shootVelocity;
+    if (keys.shootRight) dx = this.shootVelocity;
     if (dx !== 0 && dy !== 0) return this.createBullet(dx / 1.5, dy / 1.5);
     else if (dx !== 0 || dy !== 0) return this.createBullet(dx, dy);
   }
 
   createBullet(dx, dy) {
-    this.shotConfig.lastShotDate = new Date();
     return new Bullet(
       this.x + this.size / 2,
       this.y + this.size / 2,
-      this.shotConfig.velocity,
+      this.shootVelocity,
       dx,
       dy
     );
   }
 
-  checkLastShotDate() {
-    const currentDate = new Date();
-    if (currentDate - this.shotConfig.lastShotDate < this.shotConfig.millisecodsBetweenShot) {
-      return false;
-    }
-    return true;
-  }
+  // checkLastShotDate() {
+  //   const currentDate = new Date();
+  //   if (currentDate - this.shotConfig.lastShotDate < this.shotConfig.millisecodsBetweenShot) {
+  //     return false;
+  //   }
+  //   return true;
+  // }
 }

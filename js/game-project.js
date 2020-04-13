@@ -1,9 +1,14 @@
 import {canvas, ctx, clearCanvas} from './canvas.js';
 import Background from './background.js';
 import Player from './player.js';
+import Enemy from './enemy.js';
 const background = new Background();
 const player = new Player();
 const bullets = [];
+let bulletLastDate = null;
+let millisecodsBetweenShot = 250;
+const enemies = [];
+let lastEnemyDate = null;
 
 const keys = {
   up: false,
@@ -24,14 +29,28 @@ function main() {
 }
 
 function update() {
+  // Move Player
   player.move(keys, background);
-  if (player.checkLastShotDate() && player.shoot(keys)) {
+
+  // Shoot bullet
+  if (checkLastDate(bulletLastDate, millisecodsBetweenShot) && player.shoot(keys)) {
+    bulletLastDate = new Date();
     bullets.push(player.shoot(keys));
   }
+
+  // Moves bullets
   bullets.forEach((bullet, i, arr) => {
     bullet.move();
     if (bullet.remove(background)) arr.splice(i, 1);
   });
+  
+  // Insert new enemy
+  if (checkLastDate(lastEnemyDate, getRandomNumber(500, 10000))) {
+    lastEnemyDate = new Date();
+    const position = enemyRespawnPosition();
+    enemies.push(new Enemy(position.x, position.y));
+  }
+  // console.log(enemies)
 }
 
 function draw() {
@@ -39,6 +58,7 @@ function draw() {
   background.draw(ctx);
   player.draw(ctx);
   bullets.forEach(bullet => bullet.draw(ctx));
+  enemies.forEach(enemy => enemy.draw(ctx));
 }
 
 window.onkeydown = function(event) {
@@ -62,3 +82,28 @@ window.onkeyup = function(event) {
   if (event.keyCode === 39) keys.shootRight = false;
   if (event.keyCode === 40) keys.shootDown = false;
 };
+
+// Functions
+
+function checkLastDate(lastDate, milliseconds) {
+  const currentDate = new Date();
+  if (currentDate - lastDate < milliseconds) {
+    return false;
+  }
+  return true;
+}
+
+function getRandomNumber(min, max) {
+  return Math.round(Math.random() * (max - min) + min);
+}
+
+function enemyRespawnPosition() {
+  const options = [
+    {x: 340, y: 0}, {x: 380, y: 0}, {x: 420, y: 0},
+    {x: 660, y: 240}, {x: 660, y: 280}, {x: 660, y: 320},
+    {x: 340, y: 560}, {x: 380, y: 560}, {x: 420, y: 560},
+    {x: 100, y: 240}, {x: 100, y: 280}, {x: 100, y: 320}
+  ];
+  const randomNumber = getRandomNumber(0, 11);
+  return options[randomNumber];
+}
