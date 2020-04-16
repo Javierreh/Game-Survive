@@ -54,7 +54,7 @@ function update() {
   }
 
   // Move enemies
-  enemies.forEach(enemy => enemy.move(enemies, player));
+  enemies.forEach(enemy => enemy.move(getShortestStep(enemy, player, enemies)));
 }
 
 function draw() {
@@ -112,9 +112,33 @@ function getEnemyRespawnPosition() {
   return options[randomNumber];
 }
 
-// function dist(x1, x2, y1, y2) {
-//   let a = x1 - x2;
-//   let b = y1 - y2;
-//   let result = Math.sqrt(a*a + b*b);
-//   return result;
-// }
+function getShortestStep(current, target, elements) {
+  const grid = [
+    {x: current.x, y: current.y - current.velocity},
+    {x: current.x + current.velocity, y: current.y},
+    {x: current.x, y: current.y + current.velocity},
+    {x: current.x - current.velocity, y: current.y}
+  ];
+
+  const available = grid.filter(spot => {
+    return !elements.some(element => {
+      return  spot.x >= element.x - element.size && spot.x <= element.x + element.size &&
+              spot.y >= element.y - element.size && spot.y <= element.y + element.size &&
+              element !== current;      
+    });
+  });
+
+  if (available.length > 0) {
+    const distances = available.map(elem => dist(elem.x, elem.y, target.x, target.y));
+    const indexSelected = distances.indexOf(Math.min(...distances));
+    const nextStep = available[indexSelected];
+    return nextStep;
+  }
+}
+
+function dist(x1, y1, x2, y2) {
+  let a = x1 - x2;
+  let b = y1 - y2;
+  let result = Math.sqrt(a*a + b*b);
+  return result;
+}
