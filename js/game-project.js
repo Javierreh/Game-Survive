@@ -38,7 +38,7 @@ function update() {
     bullets.push(player.shoot(keys));
   }
 
-  // Moves bullets
+  // Move bullets
   bullets.forEach((bullet, i, arr) => {
     bullet.move();
     if (bullet.remove(background)) arr.splice(i, 1);
@@ -47,18 +47,21 @@ function update() {
   // Insert new enemy
   if (checkLastDate(lastEnemyDate, getRandomNumber(500, 10000))) {
     lastEnemyDate = new Date();
-    const position = enemyRespawnPosition();
+    const position = getEnemyRespawnPosition();
     enemies.push(new Enemy(position.x, position.y));
   }
   // console.log(enemies)
+
+  // Move enemies
+  enemies.forEach(enemy => enemy.move(enemies, player));
 }
 
 function draw() {
   clearCanvas();
   background.draw(ctx);
-  player.draw(ctx);
   bullets.forEach(bullet => bullet.draw(ctx));
   enemies.forEach(enemy => enemy.draw(ctx));
+  player.draw(ctx);
 }
 
 window.onkeydown = function(event) {
@@ -97,7 +100,7 @@ function getRandomNumber(min, max) {
   return Math.round(Math.random() * (max - min) + min);
 }
 
-function enemyRespawnPosition() {
+function getEnemyRespawnPosition() {
   const options = [
     {x: 340, y: 0}, {x: 380, y: 0}, {x: 420, y: 0},
     {x: 660, y: 240}, {x: 660, y: 280}, {x: 660, y: 320},
@@ -107,3 +110,10 @@ function enemyRespawnPosition() {
   const randomNumber = getRandomNumber(0, 11);
   return options[randomNumber];
 }
+
+// function dist(x1, x2, y1, y2) {
+//   let a = x1 - x2;
+//   let b = y1 - y2;
+//   let result = Math.sqrt(a*a + b*b);
+//   return result;
+// }

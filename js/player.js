@@ -6,7 +6,6 @@ export default class Player {
     this.velocity = 5;
     this.x = 380;
     this.y = 280;
-
     this.shootVelocity = 10;
   }
 
@@ -68,12 +67,4 @@ export default class Player {
       dy
     );
   }
-
-  // checkLastShotDate() {
-  //   const currentDate = new Date();
-  //   if (currentDate - this.shotConfig.lastShotDate < this.shotConfig.millisecodsBetweenShot) {
-  //     return false;
-  //   }
-  //   return true;
-  // }
 }
