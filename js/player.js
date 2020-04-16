@@ -2,7 +2,8 @@ import Bullet from './bullet.js';
 export default class Player {
   constructor() {
     this.color = "darkgreen";
-    this.size = 40;
+    this.xSize = 40;
+    this.ySize = 40;
     this.velocity = 5;
     this.x = 380;
     this.y = 280;
@@ -11,7 +12,7 @@ export default class Player {
 
   draw(ctx) {
     ctx.fillStyle = this.color;
-    ctx.fillRect(this.x, this.y, this.size, this.size);
+    ctx.fillRect(this.x, this.y, this.xSize, this.ySize);
   }
 
   move(keys, background) {
@@ -36,14 +37,14 @@ export default class Player {
     if (this.x < background.x + background.sizeElement) {
       this.x = background.x + background.sizeElement;
     }
-    if (this.x > (background.x + background.size) - background.sizeElement * 2) {
-      this.x = (background.x + background.size) - background.sizeElement * 2;
+    if (this.x > (background.x + background.sizeArea) - background.sizeElement * 2) {
+      this.x = (background.x + background.sizeArea) - background.sizeElement * 2;
     }
     if (this.y < background.y + background.sizeElement) {
       this.y = background.y + background.sizeElement;
     }
-    if (this.y > (background.y + background.size) - background.sizeElement * 2) {
-      this.y = (background.y + background.size) - background.sizeElement * 2;
+    if (this.y > (background.y + background.sizeArea) - background.sizeElement * 2) {
+      this.y = (background.y + background.sizeArea) - background.sizeElement * 2;
     }
   }
 
@@ -60,8 +61,8 @@ export default class Player {
 
   createBullet(dx, dy) {
     return new Bullet(
-      this.x + this.size / 2,
-      this.y + this.size / 2,
+      this.x + this.xSize / 2,
+      this.y + this.ySize / 2,
       this.shootVelocity,
       dx,
       dy

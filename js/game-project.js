@@ -54,7 +54,9 @@ function update() {
   }
 
   // Move enemies
-  enemies.forEach(enemy => enemy.move(getShortestStep(enemy, player, enemies)));
+  enemies.forEach(enemy => {
+    enemy.move(getShortestStep(enemy, player, [...enemies, ...background.borders]));
+  })
 }
 
 function draw() {
@@ -88,7 +90,6 @@ window.onkeyup = function(event) {
 };
 
 // Functions
-
 function checkLastDate(lastDate, milliseconds) {
   const currentDate = new Date();
   if (currentDate - lastDate < milliseconds) {
@@ -114,31 +115,33 @@ function getEnemyRespawnPosition() {
 
 function getShortestStep(current, target, elements) {
   const grid = [
-    {x: current.x, y: current.y - current.velocity},
-    {x: current.x + current.velocity, y: current.y},
-    {x: current.x, y: current.y + current.velocity},
-    {x: current.x - current.velocity, y: current.y}
+    {x: current.x, y: current.y - current.velocity, xSize: current.xSize, ySize: current.ySize},
+    {x: current.x + current.velocity, y: current.y, xSize: current.xSize, ySize: current.ySize},
+    {x: current.x, y: current.y + current.velocity, xSize: current.xSize, ySize: current.ySize},
+    {x: current.x - current.velocity, y: current.y, xSize: current.xSize, ySize: current.ySize}
   ];
-
   const available = grid.filter(spot => {
     return !elements.some(element => {
-      return  spot.x >= element.x - element.size && spot.x <= element.x + element.size &&
-              spot.y >= element.y - element.size && spot.y <= element.y + element.size &&
-              element !== current;      
+      return checkCollision(spot, element) && element !== current;      
     });
   });
-
   if (available.length > 0) {
-    const distances = available.map(elem => dist(elem.x, elem.y, target.x, target.y));
+    const distances = available.map(elem => distanceBeetween(elem.x, elem.y, target.x, target.y));
     const indexSelected = distances.indexOf(Math.min(...distances));
     const nextStep = available[indexSelected];
     return nextStep;
   }
 }
 
-function dist(x1, y1, x2, y2) {
-  let a = x1 - x2;
-  let b = y1 - y2;
-  let result = Math.sqrt(a*a + b*b);
-  return result;
+function distanceBeetween(x1, y1, x2, y2) {
+  const a = x1 - x2;
+  const b = y1 - y2;
+  return Math.sqrt(a*a + b*b);
+}
+
+function checkCollision(elem1, elem2) {
+  return (elem1.x <= elem2.x + elem2.xSize &&
+          elem1.x + elem1.xSize >= elem2.x &&
+          elem1.y <= elem2.y + elem2.ySize &&
+          elem1.ySize + elem1.y >= elem2.y) ? true : false;
 }

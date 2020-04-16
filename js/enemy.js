@@ -1,15 +1,16 @@
 export default class Enemy {
   constructor(x, y) {
     this.color = 'red';
-    this.size = 40;
     this.x = x;
     this.y = y;
+    this.xSize = 40;
+    this.ySize = 40;
     this.velocity = 3;
   }
   
   draw(ctx) {
     ctx.fillStyle = this.color;
-    ctx.fillRect(this.x, this.y, this.size, this.size);
+    ctx.fillRect(this.x, this.y, this.xSize, this.ySize);
   }
 
   move(nextStep) {
