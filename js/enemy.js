@@ -19,5 +19,4 @@ export default class Enemy {
       this.y = nextStep.y;
     }
   }
-
 }

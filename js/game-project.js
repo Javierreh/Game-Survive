@@ -109,8 +109,14 @@ function getEnemyRespawnPosition() {
     {x: 340, y: 560}, {x: 380, y: 560}, {x: 420, y: 560},
     {x: 100, y: 240}, {x: 100, y: 280}, {x: 100, y: 320}
   ];
-  const randomNumber = getRandomNumber(0, 11);
-  return options[randomNumber];
+  let selected;
+  do {
+    const randomNumber = getRandomNumber(0, 11);
+    selected = options[randomNumber];
+    selected.xSize = 40;
+    selected.ySize = 40;
+  } while (enemies.some(enemy => checkCollision(selected, enemy)));
+  return selected;
 }
 
 function getShortestStep(current, target, elements) {
