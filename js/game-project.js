@@ -45,12 +45,13 @@ function update() {
   });
   
   // Insert new enemy
-  if (checkLastDate(lastEnemyDate, getRandomNumber(500, 10000))) {
-    lastEnemyDate = new Date();
-    const position = getEnemyRespawnPosition();
-    enemies.push(new Enemy(position.x, position.y));
+  if (enemies.length < 24) {
+    if (checkLastDate(lastEnemyDate, getRandomNumber(500, 10000))) {
+      lastEnemyDate = new Date();
+      const position = getEnemyRespawnPosition();
+      enemies.push(new Enemy(position.x, position.y));
+    }
   }
-  // console.log(enemies)
 
   // Move enemies
   enemies.forEach(enemy => enemy.move(enemies, player));
