@@ -2,8 +2,8 @@ import Bullet from './bullet.js';
 export default class Player {
   constructor() {
     this.color = "darkgreen";
-    this.xSize = 40;
-    this.ySize = 40;
+    this.width = 40;
+    this.height = 40;
     this.velocity = 5;
     this.x = 380;
     this.y = 280;
@@ -12,7 +12,7 @@ export default class Player {
 
   draw(ctx) {
     ctx.fillStyle = this.color;
-    ctx.fillRect(this.x, this.y, this.xSize, this.ySize);
+    ctx.fillRect(this.x, this.y, this.width, this.height);
   }
 
   move(keys, background) {
@@ -61,9 +61,8 @@ export default class Player {
 
   createBullet(dx, dy) {
     return new Bullet(
-      this.x + this.xSize / 2,
-      this.y + this.ySize / 2,
-      this.shootVelocity,
+      this.x + this.width / 2,
+      this.y + this.height / 2,
       dx,
       dy
     );

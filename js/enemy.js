@@ -3,14 +3,14 @@ export default class Enemy {
     this.color = 'red';
     this.x = x;
     this.y = y;
-    this.xSize = 40;
-    this.ySize = 40;
+    this.width = 40;
+    this.height = 40;
     this.velocity = 3;
   }
   
   draw(ctx) {
     ctx.fillStyle = this.color;
-    ctx.fillRect(this.x, this.y, this.xSize, this.ySize);
+    ctx.fillRect(this.x, this.y, this.width, this.height);
   }
 
   move(nextStep) {

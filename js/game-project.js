@@ -40,13 +40,24 @@ function update() {
 
   // Move bullets
   bullets.forEach((bullet, i, arr) => {
+    // Check nullet collision with enemies
+    enemies.forEach((enemy, j, arr2) => {
+      if (bulletCollision(bullet, enemy)) {
+        arr.splice(i, 1);
+        arr2.splice(j, 1);
+      }
+    });
+    // Check bullet collision with others obtacles
+    const obstacles = [...background.borders, ...background.respawns];
+    if (obstacles.some(obs => bulletCollision(bullet, obs))) {
+      arr.splice(i, 1);
+    }
     bullet.move();
-    if (bullet.remove(background)) arr.splice(i, 1);
   });
   
   // Insert new enemy
   if (enemies.length < 24) {
-    if (checkLastDate(lastEnemyDate, getRandomNumber(500, 10000))) {
+    if (checkLastDate(lastEnemyDate, getRandomNumber(500, 5000))) {
       lastEnemyDate = new Date();
       const position = getEnemyRespawnPosition();
       enemies.push(new Enemy(position.x, position.y));
@@ -54,17 +65,17 @@ function update() {
   }
 
   // Move enemies
-  enemies.forEach(enemy => {
+  enemies.forEach((enemy, i, arr) => {
     enemy.move(getShortestStep(enemy, player, [...enemies, ...background.borders]));
-  })
+  });
 }
 
 function draw() {
   clearCanvas();
   background.draw(ctx);
-  bullets.forEach(bullet => bullet.draw(ctx));
-  enemies.forEach(enemy => enemy.draw(ctx));
   player.draw(ctx);
+  enemies.forEach(enemy => enemy.draw(ctx));
+  bullets.forEach(bullet => bullet.draw(ctx));
 }
 
 window.onkeydown = function(event) {
@@ -113,18 +124,18 @@ function getEnemyRespawnPosition() {
   do {
     const randomNumber = getRandomNumber(0, 11);
     selected = options[randomNumber];
-    selected.xSize = 40;
-    selected.ySize = 40;
+    selected.width = 40;
+    selected.height = 40;
   } while (enemies.some(enemy => checkCollision(selected, enemy)));
   return selected;
 }
 
 function getShortestStep(current, target, elements) {
   const grid = [
-    {x: current.x, y: current.y - current.velocity, xSize: current.xSize, ySize: current.ySize},
-    {x: current.x + current.velocity, y: current.y, xSize: current.xSize, ySize: current.ySize},
-    {x: current.x, y: current.y + current.velocity, xSize: current.xSize, ySize: current.ySize},
-    {x: current.x - current.velocity, y: current.y, xSize: current.xSize, ySize: current.ySize}
+    {x: current.x, y: current.y - current.velocity, width: current.width, height: current.height},
+    {x: current.x + current.velocity, y: current.y, width: current.width, height: current.height},
+    {x: current.x, y: current.y + current.velocity, width: current.width, height: current.height},
+    {x: current.x - current.velocity, y: current.y, width: current.width, height: current.height}
   ];
   const available = grid.filter(spot => {
     return !elements.some(element => {
@@ -146,8 +157,20 @@ function distanceBeetween(x1, y1, x2, y2) {
 }
 
 function checkCollision(elem1, elem2) {
-  return (elem1.x <= elem2.x + elem2.xSize &&
-          elem1.x + elem1.xSize >= elem2.x &&
-          elem1.y <= elem2.y + elem2.ySize &&
-          elem1.ySize + elem1.y >= elem2.y) ? true : false;
+  return (elem1.x < elem2.x + elem2.width &&
+          elem1.x + elem1.width > elem2.x &&
+          elem1.y < elem2.y + elem2.height &&
+          elem1.height + elem1.y > elem2.y) ? true : false;
+}
+
+function bulletCollision(circle, rect) {
+  const distX = Math.abs(circle.x - rect.x - rect.width / 2);
+  const distY = Math.abs(circle.y - rect.y - rect.height / 2);
+  if (distX > (rect.width / 2 + circle.radius)) return false;
+  if (distY > (rect.height / 2 + circle.radius)) return false;
+  if (distX <= (rect.width / 2)) return true;
+  if (distY <= (rect.height / 2)) return true;
+  const dx = distX - rect.width / 2;
+  const dy = distY - rect.height / 2;
+  return (dx * dx + dy * dy <= (circle.radius * circle.radius));
 }
