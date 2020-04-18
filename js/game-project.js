@@ -32,9 +32,9 @@ window.requestAnimationFrame(gameLoop);
 function gameLoop(timeStamp) {
   if (!stoppedGame) {
     update();
+    draw();
+    window.requestAnimationFrame(gameLoop);
   }
-  draw();
-  window.requestAnimationFrame(gameLoop);
 }
 
 function update() {
@@ -67,18 +67,20 @@ function update() {
   
   // Insert new enemy
   if (enemies.length < 24) {
-    if (checkLastDate(lastEnemyDate, getRandomNumber(500, 5000))) {
+    if (checkLastDate(lastEnemyDate, getRandomNumber(3000, 5000))) {
       lastEnemyDate = new Date();
-      const position = getEnemyRespawnPosition();
-      enemies.push(new Enemy(position.x, position.y));
+      const newEnemies = getEnemiesRespawn();
+      newEnemies.forEach(enemy => enemies.push(new Enemy(enemy.x, enemy.y, 40, 40)));
     }
   }
 
   // Move enemies
   enemies.forEach((enemy, i, arr) => {
     enemy.move(getShortestStep(enemy, player, [...enemies, ...background.borders]));
-    if (checkCollision(enemy, player)) {
+    if (checkCollision(enemy, player) && !player.transparency) {
       lifes--;
+      player.transparency = true;
+      setTimeout(() => player.transparency = false, 2000)
       if (lifes < 1) {
         stoppedGame = true;
       } else {
@@ -135,20 +137,23 @@ function getRandomNumber(min, max) {
   return Math.round(Math.random() * (max - min) + min);
 }
 
-function getEnemyRespawnPosition() {
-  const options = [
+function getEnemiesRespawn() {
+  let options = [
     {x: 340, y: 0}, {x: 380, y: 0}, {x: 420, y: 0},
     {x: 660, y: 240}, {x: 660, y: 280}, {x: 660, y: 320},
     {x: 340, y: 560}, {x: 380, y: 560}, {x: 420, y: 560},
     {x: 100, y: 240}, {x: 100, y: 280}, {x: 100, y: 320}
   ];
-  let selected;
-  do {
-    const randomNumber = getRandomNumber(0, 11);
-    selected = options[randomNumber];
-    selected.width = 40;
-    selected.height = 40;
-  } while (enemies.some(enemy => checkCollision(selected, enemy)));
+  options.sort(() => Math.random() - 0.5);
+  let random = getRandomNumber(1, 4);
+  let selected = [];
+  for (let i = 0; i < random; i++) {
+    if (!enemies.some(enemy => checkCollision(options[i], enemy))) {
+      selected.push(options[i]);
+    } else {
+      i--;
+    }
+  }
   return selected;
 }
 

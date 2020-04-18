@@ -2,17 +2,29 @@ import Bullet from './bullet.js';
 export default class Player {
   constructor() {
     this.color = "darkgreen";
+    this.subcolor = "lightgreen";
+    this.currentColor = this.color;
     this.width = 40;
     this.height = 40;
     this.velocity = 3;
     this.x = 380;
     this.y = 280;
     this.shootVelocity = 5;
+    this.transparency = false;
   }
 
   draw(ctx) {
-    ctx.fillStyle = this.color;
+    if (this.transparency) {
+      this.switchColor();
+      ctx.fillStyle = this.currentColor;
+    } else {
+      ctx.fillStyle = this.color;
+    }
     ctx.fillRect(this.x, this.y, this.width, this.height);
+  }
+
+  switchColor() {
+    this.currentColor = (this.currentColor === this.color) ? this.subcolor : this.color;
   }
 
   move(keys, background) {

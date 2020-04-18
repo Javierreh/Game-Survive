@@ -1,11 +1,11 @@
 export default class Enemy {
-  constructor(x, y) {
+  constructor(x, y, width, height) {
     this.color = 'red';
     this.x = x;
     this.y = y;
-    this.width = 40;
-    this.height = 40;
-    this.velocity = 3;
+    this.width = width;
+    this.height = height;
+    this.velocity = 2;
   }
   
   draw(ctx) {
