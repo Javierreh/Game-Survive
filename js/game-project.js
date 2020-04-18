@@ -1,7 +1,8 @@
-import {canvas, ctx, clearCanvas} from './canvas.js';
 import Background from './background.js';
 import Player from './player.js';
 import Enemy from './enemy.js';
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 const background = new Background();
 const player = new Player();
 const bullets = [];
@@ -21,11 +22,19 @@ const keys = {
   shootRight: false
 };
 
-setInterval(main, 33);
+let score = 0;
+let lifes = 10;
 
-function main() {
-  update();
+let stoppedGame = false;
+
+window.requestAnimationFrame(gameLoop);
+
+function gameLoop(timeStamp) {
+  if (!stoppedGame) {
+    update();
+  }
   draw();
+  window.requestAnimationFrame(gameLoop);
 }
 
 function update() {
@@ -45,6 +54,7 @@ function update() {
       if (bulletCollision(bullet, enemy)) {
         arr.splice(i, 1);
         arr2.splice(j, 1);
+        score++;
       }
     });
     // Check bullet collision with others obtacles
@@ -67,12 +77,20 @@ function update() {
   // Move enemies
   enemies.forEach((enemy, i, arr) => {
     enemy.move(getShortestStep(enemy, player, [...enemies, ...background.borders]));
+    if (checkCollision(enemy, player)) {
+      lifes--;
+      if (lifes < 1) {
+        stoppedGame = true;
+      } else {
+        arr.splice(i, 1);
+      } 
+    }
   });
 }
 
 function draw() {
   clearCanvas();
-  background.draw(ctx);
+  background.draw(ctx, score, lifes);
   player.draw(ctx);
   enemies.forEach(enemy => enemy.draw(ctx));
   bullets.forEach(bullet => bullet.draw(ctx));
@@ -101,6 +119,10 @@ window.onkeyup = function(event) {
 };
 
 // Functions
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
 function checkLastDate(lastDate, milliseconds) {
   const currentDate = new Date();
   if (currentDate - lastDate < milliseconds) {

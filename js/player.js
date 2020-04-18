@@ -4,10 +4,10 @@ export default class Player {
     this.color = "darkgreen";
     this.width = 40;
     this.height = 40;
-    this.velocity = 5;
+    this.velocity = 3;
     this.x = 380;
     this.y = 280;
-    this.shootVelocity = 10;
+    this.shootVelocity = 5;
   }
 
   draw(ctx) {

@@ -24,7 +24,7 @@ export default class Background {
     ];
   }
   
-  draw(ctx) {
+  draw(ctx, score, lifes) {
     // Draw Game Area
     ctx.beginPath();
     ctx.rect(this.x, this.y, this.sizeArea, this.sizeArea);
@@ -38,5 +38,21 @@ export default class Background {
     // Draw enemies respawn area
     ctx.fillStyle = this.color2;
     this.respawns.forEach(respawn => ctx.fillRect(respawn.x, respawn.y, respawn.width, respawn.height));
+
+    // Draw score
+    ctx.fillStyle = 'red';
+    ctx.fillRect(730, 51, 40, 40);
+    ctx.fillStyle = 'black';
+    ctx.font = '30px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(score, 750, 125);
+    
+    // Draw lifes
+    ctx.fillStyle = 'darkgreen';
+    let lifePositionY = 510;
+    for (let i = 0; i < lifes; i++) {
+      ctx.fillRect(30, lifePositionY, 40, 40);
+      lifePositionY -= 51;
+    }
   }
 }
