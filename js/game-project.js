@@ -31,6 +31,8 @@ let oldTimeStamp = 0;
 
 let currentAmmunition = null;
 let lastAmmunition = null;
+let currentTimer = null;
+let lastTimer = null;
 
 const respawn = {
   enemy: {
@@ -41,7 +43,8 @@ const respawn = {
     quantity: {
       min: 1,
       max: 1
-    }
+    },
+    size: 40
   },
   ammunition: {
     time: {
@@ -49,6 +52,13 @@ const respawn = {
       max: 8000
     },
     lastDate: new Date()
+  },
+  timer: {
+    lastDate: new Date(),
+    time: {
+      min: 5000,
+      max: 7000
+    }
   }
 };
 
@@ -68,19 +78,38 @@ function gameLoop(timeStamp) {
 }
 
 function update() {
+  // Check game over
+  if (lifes < 1 || timeLimit === 0) {
+    stoppedGame = true;
+    // Game Over function here
+  }
+
   // Check difficulty
   checkDifficulty();
 
   // Respawn Ammunition
   if (checkLastDate(respawn.ammunition.lastDate, getRandomNumber(respawn.ammunition.time.min, respawn.ammunition.time.max)) && !currentAmmunition) {
-    currentAmmunition = getAmmunition();
+    currentAmmunition = getSupply(lastAmmunition);
     lastAmmunition = currentAmmunition;
   }
-  // Ammunition Collition
+  // Ammunition collision
   if (currentAmmunition && bulletCollision(currentAmmunition, player)) {
     currentAmmunition = null;
     respawn.ammunition.lastDate = new Date();
     ammunition += 10;
+  }
+
+  // Respawn Timer
+  if (checkLastDate(respawn.timer.lastDate, getRandomNumber(respawn.timer.time.min, respawn.timer.time.max)) && !currentTimer) {
+    currentTimer = getSupply(lastTimer);
+    lastTimer = currentTimer;
+  }
+  // Timer collision
+  if (currentTimer && bulletCollision(currentTimer, player)) {
+    currentTimer = null;
+    respawn.timer.lastDate = new Date();
+    timeLimit += 10;
+    if (timeLimit > 60) timeLimit = 60;
   }
 
   // Move Player
@@ -116,7 +145,7 @@ function update() {
     if (checkLastDate(lastEnemyDate, getRandomNumber(respawn.enemy.time.min, respawn.enemy.time.max))) {
       lastEnemyDate = new Date();
       const newEnemies = getEnemiesRespawn();
-      newEnemies.forEach(enemy => enemies.push(new Enemy(enemy.x, enemy.y, 40, 40)));
+      newEnemies.forEach(enemy => enemies.push(new Enemy(enemy.x, enemy.y, respawn.enemy.size, respawn.enemy.size)));
     }
   }
 
@@ -127,11 +156,9 @@ function update() {
       lifes--;
       player.transparency = true;
       setTimeout(() => player.transparency = false, 2000)
-      if (lifes < 1) {
-        stoppedGame = true;
-      } else {
+      if (lifes > 0) {
         arr.splice(i, 1);
-      } 
+      }
     }
   });
 }
@@ -141,6 +168,7 @@ function draw() {
   background.draw(ctx, score, lifes, ammunition, timeLimit);
   player.draw(ctx);
   if (currentAmmunition) drawAmmunition();
+  if (currentTimer) drawTimer();
   enemies.forEach(enemy => enemy.draw(ctx));
   bullets.forEach(bullet => bullet.draw(ctx));
 }
@@ -249,6 +277,35 @@ function bulletCollision(circle, rect) {
   return (dx * dx + dy * dy <= (circle.radius * circle.radius));
 }
 
+function getSupply(lastSuply) {
+  let newSupply;
+  do {
+    newSupply = {
+      x: (getRandomNumber(2, 13) * 40) + 100,
+      y: getRandomNumber(2, 13) * 40,
+      radius: 20
+    }
+  } while (newSupply === lastSuply || bulletCollision(newSupply, player))
+  return newSupply;
+}
+
+function drawAmmunition() {
+  ctx.beginPath();
+  ctx.arc(currentAmmunition.x, currentAmmunition.y, currentAmmunition.radius, 0, 2 * Math.PI);
+  ctx.fillStyle = 'gold';
+  ctx.fill();
+}
+
+function drawTimer() {
+  ctx.beginPath();
+  ctx.fillStyle = "blue";
+  ctx.moveTo(currentTimer.x - 20, currentTimer.y - 20);
+  ctx.lineTo(currentTimer.x + 20, currentTimer.y - 20);
+  ctx.lineTo(currentTimer.x, currentTimer.y + 10);
+  ctx.closePath();
+  ctx.fill();
+}
+
 function checkDifficulty() {
   switch (score) {
     case 5:
@@ -262,37 +319,60 @@ function checkDifficulty() {
       respawn.enemy.quantity.max = 3;
       break;
     case 25:
-      respawn.enemy.time.min = 1500;
+      respawn.enemy.time.min = 1750;
       respawn.enemy.time.max = 3500;
       break;
-    case 35:
-      respawn.enemy.time.min = 1000;
-      respawn.enemy.time.max = 4000;
-      break;
     case 50:
+      respawn.enemy.time.min = 1500;
       respawn.enemy.time.max = 5000;
-      respawn.enemy.quantity.max = 4;
+      break;
+    case 75:
+      respawn.enemy.time.min = 1250;
+      respawn.enemy.time.max = 7000;
       respawn.ammunition.time.min = 1000;
       respawn.ammunition.time.max = 5000;
       break;
+    case 90:
+      respawn.enemy.time.min = 2000;
+      respawn.enemy.time.max = 5000;
+      respawn.ammunition.time.min = 500;
+      respawn.ammunition.time.max = 2500;
+      break;
+    case 100:
+      respawn.enemy.time.min = 5000;
+      respawn.enemy.time.max = 5000;
+      respawn.enemy.quantity.min = 6;
+      respawn.enemy.quantity.max = 6;
+      break;
+    case 125:
+      respawn.enemy.time.min = 2500;
+      respawn.enemy.time.max = 3500;
+      respawn.enemy.quantity.min = 1;
+      respawn.enemy.quantity.max = 3;
+      respawn.ammunition.time.min = 2500;
+      respawn.ammunition.time.max = 5000;
+      break;
+    case 150:
+      respawn.enemy.time.min = 1250;
+      respawn.enemy.time.max = 7000;
+      respawn.enemy.quantity.max = 4;
+      respawn.ammunition.time.min = 1000;
+      respawn.ammunition.time.max = 3000;
+      break;
+    case 175:
+      respawn.enemy.time.min = 1000;
+      respawn.enemy.time.max = 8000;
+      respawn.ammunition.time.min = 500;
+      respawn.ammunition.time.max = 2500;
+      break;
+    case 200:
+      respawn.enemy.time.min = 750;
+      respawn.enemy.time.max = 9000;
+      break;
+    case 1000:
+      respawn.enemy.quantity.max = 2;
+      respawn.enemy.quantity.max = 5;
+      respawn.enemy.size = 20;
+      break;
   }
-}
-
-function getAmmunition() {
-  let newAmmunition;
-  do {
-    newAmmunition = {
-      x: (getRandomNumber(2, 13) * 40) + 100,
-      y: getRandomNumber(2, 13) * 40,
-      radius: 20
-    }
-  } while (newAmmunition === lastAmmunition || bulletCollision(newAmmunition, player))
-  return newAmmunition;
-}
-
-function drawAmmunition() {
-  ctx.beginPath();
-  ctx.arc(currentAmmunition.x, currentAmmunition.y, currentAmmunition.radius, 0, 2 * Math.PI);
-  ctx.fillStyle = 'gold';
-  ctx.fill();
 }
