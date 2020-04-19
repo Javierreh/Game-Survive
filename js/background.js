@@ -24,7 +24,7 @@ export default class Background {
     ];
   }
   
-  draw(ctx, score, lifes) {
+  draw(ctx, score, lifes, ammunition, timeLimit) {
     // Draw Game Area
     ctx.beginPath();
     ctx.rect(this.x, this.y, this.sizeArea, this.sizeArea);
@@ -54,5 +54,33 @@ export default class Background {
       ctx.fillRect(30, lifePositionY, 40, 40);
       lifePositionY -= 51;
     }
+
+    // Draw ammunition
+    ctx.beginPath();
+    ctx.arc(750, 170, 20, 0, 2 * Math.PI);
+    ctx.fillStyle = 'gold';
+    ctx.fill();
+    ctx.fillStyle = 'black';
+    ctx.font = '30px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(ammunition, 750, 225);
+
+    // Draw timer
+    // Seconds
+    ctx.fillStyle = 'black';
+    ctx.font = '30px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(Math.round(timeLimit), 750, 510 - timeLimit * 3.7);
+    // Bar
+    ctx.fillStyle = 'blue';
+    ctx.fillRect(730, 520, 40, -timeLimit * 3.7);
+    // Base
+    ctx.beginPath();
+    ctx.fillStyle = "blue";
+    ctx.moveTo(730, 520);
+    ctx.lineTo(770, 520);
+    ctx.lineTo(750, 550);
+    ctx.closePath();
+    ctx.fill();
   }
 }

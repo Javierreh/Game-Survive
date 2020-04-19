@@ -24,6 +24,21 @@ const keys = {
 
 let score = 0;
 let lifes = 10;
+let ammunition = 25;
+
+let timeLimit = 30;
+let oldTimeStamp = 0;
+
+const respawnOptions = {
+  time: {
+    min: 2000,
+    max: 3000
+  },
+  quantity: {
+    min: 1,
+    max: 1
+  }
+}
 
 let stoppedGame = false;
 
@@ -31,6 +46,9 @@ window.requestAnimationFrame(gameLoop);
 
 function gameLoop(timeStamp) {
   if (!stoppedGame) {
+    timeLimit -= (timeStamp - oldTimeStamp) / 1000;
+    oldTimeStamp = timeStamp;
+    if (timeLimit < 0) timeLimit = 0;
     update();
     draw();
     window.requestAnimationFrame(gameLoop);
@@ -38,18 +56,22 @@ function gameLoop(timeStamp) {
 }
 
 function update() {
+  // Check difficulty
+  checkDifficulty();
+
   // Move Player
   player.move(keys, background);
 
   // Shoot bullet
-  if (checkLastDate(bulletLastDate, millisecodsBetweenShot) && player.shoot(keys)) {
+  if (checkLastDate(bulletLastDate, millisecodsBetweenShot) && player.shoot(keys) && ammunition > 0) {
     bulletLastDate = new Date();
     bullets.push(player.shoot(keys));
+    ammunition--;
   }
 
   // Move bullets
   bullets.forEach((bullet, i, arr) => {
-    // Check nullet collision with enemies
+    // Check bullet collision with enemies
     enemies.forEach((enemy, j, arr2) => {
       if (bulletCollision(bullet, enemy)) {
         arr.splice(i, 1);
@@ -57,7 +79,7 @@ function update() {
         score++;
       }
     });
-    // Check bullet collision with others obtacles
+    // Check bullet collision with others obstacles
     const obstacles = [...background.borders, ...background.respawns];
     if (obstacles.some(obs => bulletCollision(bullet, obs))) {
       arr.splice(i, 1);
@@ -66,8 +88,8 @@ function update() {
   });
   
   // Insert new enemy
-  if (enemies.length < 24) {
-    if (checkLastDate(lastEnemyDate, getRandomNumber(3000, 5000))) {
+  if (enemies.length < 30) {
+    if (checkLastDate(lastEnemyDate, getRandomNumber(respawnOptions.time.min, respawnOptions.time.max))) {
       lastEnemyDate = new Date();
       const newEnemies = getEnemiesRespawn();
       newEnemies.forEach(enemy => enemies.push(new Enemy(enemy.x, enemy.y, 40, 40)));
@@ -92,7 +114,7 @@ function update() {
 
 function draw() {
   clearCanvas();
-  background.draw(ctx, score, lifes);
+  background.draw(ctx, score, lifes, ammunition, timeLimit);
   player.draw(ctx);
   enemies.forEach(enemy => enemy.draw(ctx));
   bullets.forEach(bullet => bullet.draw(ctx));
@@ -145,7 +167,7 @@ function getEnemiesRespawn() {
     {x: 100, y: 240}, {x: 100, y: 280}, {x: 100, y: 320}
   ];
   options.sort(() => Math.random() - 0.5);
-  let random = getRandomNumber(1, 4);
+  let random = getRandomNumber(respawnOptions.quantity.min, respawnOptions.quantity.max);
   let selected = [];
   for (let i = 0; i < random; i++) {
     if (!enemies.some(enemy => checkCollision(options[i], enemy))) {
@@ -200,4 +222,31 @@ function bulletCollision(circle, rect) {
   const dx = distX - rect.width / 2;
   const dy = distY - rect.height / 2;
   return (dx * dx + dy * dy <= (circle.radius * circle.radius));
+}
+
+function checkDifficulty() {
+  switch (score) {
+    case 5:
+      respawnOptions.quantity.min = 2;
+      respawnOptions.quantity.max = 2;
+      break;
+    case 6:
+      respawnOptions.quantity.min = 1;
+      break;
+    case 15:
+      respawnOptions.quantity.max = 3;
+      break;
+    case 25:
+      respawnOptions.time.min = 1500;
+      respawnOptions.time.max = 3500;
+      break;
+    case 35:
+      respawnOptions.time.min = 1000;
+      respawnOptions.time.max = 4000;
+      break;
+    case 50:
+      respawnOptions.time.max = 5000;
+      respawnOptions.quantity.max = 4;
+      break;
+  }
 }
