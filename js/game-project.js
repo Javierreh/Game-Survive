@@ -8,7 +8,7 @@ const player = new Player();
 const bullets = [];
 let bulletLastDate = null;
 let millisecodsBetweenShot = 250;
-const enemies = [];
+let enemies = [];
 let lastEnemyDate = null;
 
 const keys = {
@@ -30,9 +30,9 @@ let timeLimit = 30;
 let oldTimeStamp = 0;
 
 let currentAmmunition = null;
-let lastAmmunition = null;
 let currentTimer = null;
-let lastTimer = null;
+let currentBoom = null;
+let currentLife = null;
 
 const respawn = {
   enemy: {
@@ -51,6 +51,7 @@ const respawn = {
       min: 3000,
       max: 8000
     },
+    quantity: 10,
     lastDate: new Date()
   },
   timer: {
@@ -58,6 +59,20 @@ const respawn = {
     time: {
       min: 5000,
       max: 7000
+    }
+  },
+  boom: {
+    lastDate: null,
+    time: {
+      min: null,
+      max: null
+    }
+  },
+  life: {
+    lastDate: null,
+    time: {
+      min: 10000,
+      max: 10000
     }
   }
 };
@@ -89,27 +104,52 @@ function update() {
 
   // Respawn Ammunition
   if (checkLastDate(respawn.ammunition.lastDate, getRandomNumber(respawn.ammunition.time.min, respawn.ammunition.time.max)) && !currentAmmunition) {
-    currentAmmunition = getSupply(lastAmmunition);
-    lastAmmunition = currentAmmunition;
+    currentAmmunition = getSupply('circle');
   }
   // Ammunition collision
   if (currentAmmunition && bulletCollision(currentAmmunition, player)) {
     currentAmmunition = null;
     respawn.ammunition.lastDate = new Date();
-    ammunition += 10;
+    ammunition += respawn.ammunition.quantity;
   }
 
   // Respawn Timer
   if (checkLastDate(respawn.timer.lastDate, getRandomNumber(respawn.timer.time.min, respawn.timer.time.max)) && !currentTimer) {
-    currentTimer = getSupply(lastTimer);
-    lastTimer = currentTimer;
+    currentTimer = getSupply('circle');
   }
   // Timer collision
   if (currentTimer && bulletCollision(currentTimer, player)) {
     currentTimer = null;
     respawn.timer.lastDate = new Date();
     timeLimit += 10;
-    if (timeLimit > 60) timeLimit = 60;
+    if (timeLimit > 30) timeLimit = 30;
+  }
+
+  // Respawn Boom
+  if (checkLastDate(respawn.boom.lastDate, getRandomNumber(respawn.boom.time.min, respawn.boom.time.max)) && !currentBoom) {
+    currentBoom = getSupply('circle');
+  }
+  // Boom collision
+  if (currentBoom && bulletCollision(currentBoom, player)) {
+    currentBoom = null;
+    respawn.boom.lastDate = new Date();
+    for (let i = 0; i < enemies.length; i++) {
+      score++;
+      checkDifficulty();
+    }
+    enemies = [];
+  }
+
+  // Respawn Life
+  if (checkLastDate(respawn.life.lastDate, getRandomNumber(respawn.life.time.min, respawn.life.time.max)) && !currentLife && lifes < 10) {
+    currentLife = getSupply('rect');
+  }
+  // Life collision
+  if (currentLife && checkCollision(currentLife, player)) {
+    currentLife = null;
+    respawn.life.lastDate = new Date();
+    lifes++;
+    if (lifes > 10) lifes = 10;
   }
 
   // Move Player
@@ -169,6 +209,8 @@ function draw() {
   player.draw(ctx);
   if (currentAmmunition) drawAmmunition();
   if (currentTimer) drawTimer();
+  if (currentBoom) drawBoom();
+  if (currentLife) drawLife();
   enemies.forEach(enemy => enemy.draw(ctx));
   bullets.forEach(bullet => bullet.draw(ctx));
 }
@@ -202,22 +244,23 @@ function clearCanvas() {
 
 function checkLastDate(lastDate, milliseconds) {
   const currentDate = new Date();
-  if (currentDate - lastDate < milliseconds) {
+  if (currentDate - lastDate < milliseconds || milliseconds === null) {
     return false;
   }
   return true;
 }
 
 function getRandomNumber(min, max) {
+  if (!min || !max) return null;
   return Math.round(Math.random() * (max - min) + min);
 }
 
 function getEnemiesRespawn() {
   let options = [
-    {x: 340, y: 0}, {x: 380, y: 0}, {x: 420, y: 0},
-    {x: 660, y: 240}, {x: 660, y: 280}, {x: 660, y: 320},
-    {x: 340, y: 560}, {x: 380, y: 560}, {x: 420, y: 560},
-    {x: 100, y: 240}, {x: 100, y: 280}, {x: 100, y: 320}
+    {x: 340, y: 0, width: 40, height: 40}, {x: 380, y: 0, width: 40, height: 40}, {x: 420, y: 0, width: 40, height: 40},
+    {x: 660, y: 240, width: 40, height: 40}, {x: 660, y: 280, width: 40, height: 40}, {x: 660, y: 320, width: 40, height: 40},
+    {x: 340, y: 560, width: 40, height: 40}, {x: 380, y: 560, width: 40, height: 40}, {x: 420, y: 560, width: 40, height: 40},
+    {x: 100, y: 240, width: 40, height: 40}, {x: 100, y: 280, width: 40, height: 40}, {x: 100, y: 320, width: 40, height: 40}
   ];
   options.sort(() => Math.random() - 0.5);
   let random = getRandomNumber(respawn.enemy.quantity.min, respawn.enemy.quantity.max);
@@ -225,8 +268,6 @@ function getEnemiesRespawn() {
   for (let i = 0; i < random; i++) {
     if (!enemies.some(enemy => checkCollision(options[i], enemy))) {
       selected.push(options[i]);
-    } else {
-      i--;
     }
   }
   return selected;
@@ -277,15 +318,26 @@ function bulletCollision(circle, rect) {
   return (dx * dx + dy * dy <= (circle.radius * circle.radius));
 }
 
-function getSupply(lastSuply) {
+function getSupply(type) {
   let newSupply;
-  do {
-    newSupply = {
-      x: (getRandomNumber(2, 13) * 40) + 100,
-      y: getRandomNumber(2, 13) * 40,
-      radius: 20
-    }
-  } while (newSupply === lastSuply || bulletCollision(newSupply, player))
+  if (type === 'circle') {
+    do {
+      newSupply = {
+        x: (getRandomNumber(2, 13) * 40) + 100,
+        y: getRandomNumber(2, 13) * 40,
+        radius: 20
+      }
+    } while (bulletCollision(newSupply, player))
+  } else if (type === 'rect') {
+    do {
+      newSupply = {
+        x: (getRandomNumber(2, 13) * 40) + 100,
+        y: getRandomNumber(2, 13) * 40,
+        width: 30,
+        height: 30
+      }
+    } while (checkCollision(newSupply, player))
+  }
   return newSupply;
 }
 
@@ -298,12 +350,28 @@ function drawAmmunition() {
 
 function drawTimer() {
   ctx.beginPath();
-  ctx.fillStyle = "blue";
+  ctx.fillStyle = 'blue';
   ctx.moveTo(currentTimer.x - 20, currentTimer.y - 20);
   ctx.lineTo(currentTimer.x + 20, currentTimer.y - 20);
   ctx.lineTo(currentTimer.x, currentTimer.y + 10);
   ctx.closePath();
   ctx.fill();
+}
+
+function drawBoom() {
+  ctx.beginPath();
+  ctx.fillStyle = 'black';
+  ctx.moveTo(currentBoom.x, currentBoom.y - 20);
+  ctx.lineTo(currentBoom.x - 20, currentBoom.y);
+  ctx.lineTo(currentBoom.x, currentBoom.y + 20);
+  ctx.lineTo(currentBoom.x + 20, currentBoom.y);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawLife() {
+  ctx.fillStyle = 'darkgreen';
+  ctx.fillRect(currentLife.x, currentLife.y, currentLife.width, currentLife.height);
 }
 
 function checkDifficulty() {
@@ -325,6 +393,9 @@ function checkDifficulty() {
     case 50:
       respawn.enemy.time.min = 1500;
       respawn.enemy.time.max = 5000;
+      respawn.boom.lastDate = new Date();
+      respawn.boom.time.min = 6000;
+      respawn.boom.time.max = 9000;
       break;
     case 75:
       respawn.enemy.time.min = 1250;
@@ -335,8 +406,9 @@ function checkDifficulty() {
     case 90:
       respawn.enemy.time.min = 2000;
       respawn.enemy.time.max = 5000;
-      respawn.ammunition.time.min = 500;
       respawn.ammunition.time.max = 2500;
+      respawn.boom.time.min = 12000;
+      respawn.boom.time.max = 15000;
       break;
     case 100:
       respawn.enemy.time.min = 5000;
@@ -351,6 +423,8 @@ function checkDifficulty() {
       respawn.enemy.quantity.max = 3;
       respawn.ammunition.time.min = 2500;
       respawn.ammunition.time.max = 5000;
+      respawn.boom.time.min = 6000;
+      respawn.boom.time.max = 9000;
       break;
     case 150:
       respawn.enemy.time.min = 1250;
@@ -358,21 +432,46 @@ function checkDifficulty() {
       respawn.enemy.quantity.max = 4;
       respawn.ammunition.time.min = 1000;
       respawn.ammunition.time.max = 3000;
+      respawn.boom.time.min = 5000;
+      respawn.boom.time.max = 7000;
       break;
     case 175:
       respawn.enemy.time.min = 1000;
       respawn.enemy.time.max = 8000;
-      respawn.ammunition.time.min = 500;
       respawn.ammunition.time.max = 2500;
+      respawn.boom.time.min = 4000;
+      respawn.boom.time.max = 6000;
       break;
     case 200:
       respawn.enemy.time.min = 750;
       respawn.enemy.time.max = 9000;
+      respawn.enemy.quantity.max = 5;
+      respawn.ammunition.time.min = 500;
+      respawn.ammunition.quantity = 20;
+      respawn.boom.time.min = 3000;
+      respawn.boom.time.max = 5000;
+      respawn.life.time.min = 5000;
+      respawn.life.time.max = 5000;
+      respawn.timer.time.min = 4000;
+      respawn.timer.time.min = 5000;
+      break;
+    case 500:
+      respawn.enemy.time.min = 500;
+      respawn.enemy.time.max = 10000;
+      respawn.enemy.quantity.max = 6;
+      respawn.ammunition.time.min = 1000;
+      respawn.ammunition.time.max = 3000;
+      respawn.boom.time.min = 2000;
+      respawn.boom.time.max = 4000;
+      respawn.life.time.min = 2000;
+      respawn.life.time.max = 3500;
+      respawn.timer.time.min = 3000;
+      respawn.timer.time.min = 5000;
+      respawn.enemy.size = 30;
       break;
     case 1000:
-      respawn.enemy.quantity.max = 2;
-      respawn.enemy.quantity.max = 5;
-      respawn.enemy.size = 20;
+      stoppedGame = true;
+      // function youWin() here
       break;
   }
 }
