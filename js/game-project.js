@@ -27,7 +27,7 @@ let lifes = 10;
 let ammunition = 25;
 
 let timeLimit = 30;
-let oldTimeStamp = 0;
+let oldTimeStamp = null;
 
 let currentAmmunition = null;
 let currentTimer = null;
@@ -44,18 +44,20 @@ const respawn = {
       min: 1,
       max: 1
     },
-    size: 40
+    size: 40,
+    velocity: 2,
+    limit: 30
   },
   ammunition: {
+    lastDate: null,
     time: {
       min: 3000,
       max: 8000
     },
-    quantity: 10,
-    lastDate: new Date()
+    quantity: 10
   },
   timer: {
-    lastDate: new Date(),
+    lastDate: null,
     time: {
       min: 5000,
       max: 7000
@@ -77,19 +79,23 @@ const respawn = {
   }
 };
 
+let startScreen = true;
 let stoppedGame = false;
 
 window.requestAnimationFrame(gameLoop);
 
 function gameLoop(timeStamp) {
-  if (!stoppedGame) {
-    timeLimit -= (timeStamp - oldTimeStamp) / 1000;
-    oldTimeStamp = timeStamp;
-    if (timeLimit < 0) timeLimit = 0;
-    update();
-    draw();
-    window.requestAnimationFrame(gameLoop);
+  if (!startScreen) {
+    if (!stoppedGame) {
+      checkTimeStamp(timeStamp);
+      update();
+      draw();
+    }
+  } else {
+    clearCanvas();
+    drawStartScreen();
   }
+  window.requestAnimationFrame(gameLoop);
 }
 
 function update() {
@@ -181,11 +187,11 @@ function update() {
   });
   
   // Insert new enemy
-  if (enemies.length < 30) {
+  if (enemies.length < respawn.enemy.limit) {
     if (checkLastDate(lastEnemyDate, getRandomNumber(respawn.enemy.time.min, respawn.enemy.time.max))) {
       lastEnemyDate = new Date();
       const newEnemies = getEnemiesRespawn();
-      newEnemies.forEach(enemy => enemies.push(new Enemy(enemy.x, enemy.y, respawn.enemy.size, respawn.enemy.size)));
+      newEnemies.forEach(enemy => enemies.push(new Enemy(enemy.x, enemy.y, respawn.enemy.size, respawn.enemy.size, respawn.enemy.velocity)));
     }
   }
 
@@ -215,6 +221,22 @@ function draw() {
   bullets.forEach(bullet => bullet.draw(ctx));
 }
 
+function checkTimeStamp(timeStamp) {
+  if (!oldTimeStamp) {
+    oldTimeStamp = timeStamp;
+    initRespawnDates();
+  }
+  timeLimit -= (timeStamp - oldTimeStamp) / 1000;
+  oldTimeStamp = timeStamp;
+  if (timeLimit < 0) timeLimit = 0;
+}
+
+function initRespawnDates() {
+  respawn.ammunition.lastDate = new Date();
+  respawn.timer.lastDate = new Date();
+  respawn.life.lastDate = new Date();
+}
+
 window.onkeydown = function(event) {
   if (event.keyCode === 65) keys.left = true;
   if (event.keyCode === 87) keys.up = true;
@@ -224,6 +246,7 @@ window.onkeydown = function(event) {
   if (event.keyCode === 38) keys.shootUp = true;
   if (event.keyCode === 39) keys.shootRight = true;
   if (event.keyCode === 40) keys.shootDown = true;
+  if (event.keyCode === 32) startScreen = false; 
 };
 
 window.onkeyup = function(event) {
@@ -427,7 +450,7 @@ function checkDifficulty() {
       respawn.boom.time.max = 9000;
       break;
     case 150:
-      respawn.enemy.time.min = 1250;
+      respawn.enemy.time.min = 1500;
       respawn.enemy.time.max = 7000;
       respawn.enemy.quantity.max = 4;
       respawn.ammunition.time.min = 1000;
@@ -436,42 +459,205 @@ function checkDifficulty() {
       respawn.boom.time.max = 7000;
       break;
     case 175:
-      respawn.enemy.time.min = 1000;
+      respawn.enemy.time.min = 1250;
       respawn.enemy.time.max = 8000;
       respawn.ammunition.time.max = 2500;
       respawn.boom.time.min = 4000;
       respawn.boom.time.max = 6000;
+      respawn.enemy.velocity = 1.8;
       break;
     case 200:
-      respawn.enemy.time.min = 750;
+      respawn.enemy.time.min = 1000;
       respawn.enemy.time.max = 9000;
+
       respawn.enemy.quantity.max = 5;
-      respawn.ammunition.time.min = 500;
+      respawn.ammunition.time.min = 2000;
+      respawn.ammunition.time.max = 4000;
       respawn.ammunition.quantity = 20;
-      respawn.boom.time.min = 3000;
-      respawn.boom.time.max = 5000;
+      respawn.boom.time.min = 4000;
+      respawn.boom.time.max = 6000;
       respawn.life.time.min = 5000;
       respawn.life.time.max = 5000;
       respawn.timer.time.min = 4000;
       respawn.timer.time.min = 5000;
+      respawn.enemy.velocity = 1.6;
       break;
     case 500:
-      respawn.enemy.time.min = 500;
-      respawn.enemy.time.max = 10000;
-      respawn.enemy.quantity.max = 6;
-      respawn.ammunition.time.min = 1000;
+      respawn.enemy.time.min = 2000;
+      respawn.enemy.time.max = 2000;
+      respawn.enemy.quantity.min = 8;
+      respawn.enemy.quantity.max = 8;
+      respawn.ammunition.time.min = 2000;
       respawn.ammunition.time.max = 3000;
-      respawn.boom.time.min = 2000;
-      respawn.boom.time.max = 4000;
+      respawn.boom.time.min = 8000;
+      respawn.boom.time.max = 8000;
       respawn.life.time.min = 2000;
       respawn.life.time.max = 3500;
       respawn.timer.time.min = 3000;
       respawn.timer.time.min = 5000;
       respawn.enemy.size = 30;
+      respawn.enemy.velocity = 1.4;
+      respawn.enemy.limit = 45
+      break;
+    
+    case 800:
+      respawn.enemy.quantity.min = 12;
+      respawn.enemy.quantity.max = 12;
+      respawn.enemy.time.min = 1500;
+      respawn.enemy.time.max = 1500;
+      respawn.boom.time.min = 3000;
+      respawn.boom.time.max = 4000;
+      respawn.enemy.size = 20;
+      respawn.enemy.velocity = 1.8;
+      respawn.enemy.limit = 60
       break;
     case 1000:
       stoppedGame = true;
       // function youWin() here
       break;
   }
+}
+
+function drawStartScreen() {
+  // Scene
+  background.draw(ctx, score, lifes, ammunition, timeLimit);
+  
+  // Background
+  ctx.shadowColor = 'black';
+  ctx.shadowBlur = 5;
+  ctx.shadowOffsetX = 2;
+  ctx.shadowOffsetY = 2;
+  ctx.fillStyle = 'lightgray';
+  ctx.fillRect(175, 75, 450, 450);
+
+  // Background title
+  ctx.beginPath();
+  ctx.ellipse(400, 145, 55, 175, Math.PI / 2, 0, 2 * Math.PI);
+  ctx.fillStyle = '#03BDE8';
+  ctx.fill();
+
+  // Title
+  ctx.fillStyle = 'black';
+  ctx.font = 'bold 28px Arial';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.fillText('Can you defeat', 370, 137);
+  ctx.fillText('1000 enemies?', 430, 172);
+
+  // Press space to start
+  ctx.fillStyle = 'black';
+  ctx.font = 'bold 21px Arial';
+  ctx.fillText('Press the space bar to start', 400, 490);
+
+  // Player
+  ctx.fillStyle = 'darkgreen';
+  ctx.fillRect(200, 225, 40, 40);
+  ctx.fillStyle = 'black';
+  ctx.font = '20px Arial';
+  ctx.fillText('Player', 220, 290);
+  
+  // Enemy
+  ctx.fillStyle = 'red';
+  ctx.fillRect(290, 225, 40, 40);
+  ctx.fillStyle = 'black';
+  ctx.fillText('Enemy', 310, 290);
+
+  // Bullet
+  ctx.beginPath();
+  ctx.arc(400, 245, 20, 0, 2 * Math.PI);
+  ctx.fillStyle = 'gold';
+  ctx.fill();
+  ctx.fillStyle = 'black';
+  ctx.fillText('Bullet', 400, 290);
+
+  // Time
+  ctx.beginPath();
+  ctx.fillStyle = 'blue';
+  ctx.moveTo(470, 230);
+  ctx.lineTo(510, 230);
+  ctx.lineTo(490, 265);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = 'black';
+  ctx.fillText('Timer', 490, 290);
+
+  // Bomb
+  ctx.beginPath();
+  ctx.fillStyle = 'black';
+  ctx.moveTo(580, 225);
+  ctx.lineTo(560, 245);
+  ctx.lineTo(580, 265);
+  ctx.lineTo(600, 245);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = 'black';
+  ctx.fillText('Bomb', 580, 290);
+
+  // Controls
+  // Move and shoot
+  ctx.fillStyle = 'black';
+  ctx.fillText('Move  |  Shoot', 400, 370);
+
+  // Box W A S D & Arrows
+  ctx.shadowColor = 'black';
+  ctx.shadowBlur = 1.5;
+  ctx.shadowOffsetX = 1.5;
+  ctx.shadowOffsetY = 1.5;
+  ctx.fillStyle = 'gray';
+  ctx.fillRect(275, 355, 30, 30);
+  ctx.fillRect(240, 390, 30, 30);
+  ctx.fillRect(275, 390, 30, 30);
+  ctx.fillRect(310, 390, 30, 30);
+  ctx.fillRect(495, 355, 30, 30);
+  ctx.fillRect(460, 390, 30, 30);
+  ctx.fillRect(495, 390, 30, 30);
+  ctx.fillRect(530, 390, 30, 30);
+  // W A S D
+  ctx.fillStyle = 'white';
+  ctx.fillText('W', 290, 378);
+  ctx.fillText('A', 255, 413);
+  ctx.fillText('S', 290, 413);
+  ctx.fillText('D', 325, 413);
+  // Arrow Up
+  ctx.shadowBlur = 1;
+  ctx.shadowOffsetX = 1;
+  ctx.shadowOffsetY = 1;
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.moveTo(502.5, 373);
+  ctx.lineTo(517.5, 373);
+  ctx.lineTo(510, 361);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillRect(509, 373, 2, 6);
+  // Arrow LEFT
+  ctx.beginPath();
+  ctx.moveTo(478, 398);
+  ctx.lineTo(478, 413);
+  ctx.lineTo(466, 405.5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillRect(478, 404.5, 6, 2);
+  // Arrow DOWN
+  ctx.fillRect(509, 396, 2, 6);
+  ctx.beginPath();
+  ctx.moveTo(502.5, 402);
+  ctx.lineTo(517.5, 402);
+  ctx.lineTo(510, 414);
+  ctx.closePath();
+  ctx.fill();
+  // Arrow RIGHT
+  ctx.fillRect(536, 404.5, 6, 2);
+  ctx.beginPath();
+  ctx.moveTo(542, 398);
+  ctx.lineTo(542, 413);
+  ctx.lineTo(554, 405.5);
+  ctx.closePath();
+  ctx.fill();
+
+  // Remove shadows
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
 }
