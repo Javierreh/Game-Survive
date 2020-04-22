@@ -4,12 +4,12 @@ import Enemy from './enemy.js';
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const background = new Background();
-const player = new Player();
-const bullets = [];
+let player = new Player();
+let bullets = [];
 let bulletLastDate = null;
 let millisecodsBetweenShot = 250;
 let enemies = [];
-let lastEnemyDate = null;
+
 
 const keys = {
   up: false,
@@ -34,8 +34,9 @@ let currentTimer = null;
 let currentBoom = null;
 let currentLife = null;
 
-const respawn = {
+let respawn = {
   enemy: {
+    lastDate: null,
     time: {
       min: 2000,
       max: 3000
@@ -80,7 +81,9 @@ const respawn = {
 };
 
 let startScreen = true;
-let stoppedGame = false;
+let stoppedGame = true;
+
+let statusGame = null;
 
 window.requestAnimationFrame(gameLoop);
 
@@ -90,6 +93,10 @@ function gameLoop(timeStamp) {
       checkTimeStamp(timeStamp);
       update();
       draw();
+    }
+    if (statusGame) {
+      clearCanvas();
+      gameOver(statusGame);
     }
   } else {
     clearCanvas();
@@ -102,7 +109,7 @@ function update() {
   // Check game over
   if (lifes < 1 || timeLimit === 0) {
     stoppedGame = true;
-    // Game Over function here
+    setTimeout(() => statusGame = 'lose', 1000);
   }
 
   // Check difficulty
@@ -188,8 +195,8 @@ function update() {
   
   // Insert new enemy
   if (enemies.length < respawn.enemy.limit) {
-    if (checkLastDate(lastEnemyDate, getRandomNumber(respawn.enemy.time.min, respawn.enemy.time.max))) {
-      lastEnemyDate = new Date();
+    if (checkLastDate(respawn.enemy.lastDate, getRandomNumber(respawn.enemy.time.min, respawn.enemy.time.max))) {
+      respawn.enemy.lastDate = new Date();
       const newEnemies = getEnemiesRespawn();
       newEnemies.forEach(enemy => enemies.push(new Enemy(enemy.x, enemy.y, respawn.enemy.size, respawn.enemy.size, respawn.enemy.velocity)));
     }
@@ -246,7 +253,13 @@ window.onkeydown = function(event) {
   if (event.keyCode === 38) keys.shootUp = true;
   if (event.keyCode === 39) keys.shootRight = true;
   if (event.keyCode === 40) keys.shootDown = true;
-  if (event.keyCode === 32) startScreen = false; 
+  if (event.keyCode === 32) {
+    if (startScreen === true) {
+      startScreen = false;
+      stoppedGame = false;
+    } 
+    if (statusGame !== null) resetGame();
+  } 
 };
 
 window.onkeyup = function(event) {
@@ -397,6 +410,73 @@ function drawLife() {
   ctx.fillRect(currentLife.x, currentLife.y, currentLife.width, currentLife.height);
 }
 
+function resetGame() {
+  player.x = 380;
+  player.y = 280;
+  enemies = [];
+  bullets = [];
+  bulletLastDate = null;
+  score = 0;
+  lifes = 10;
+  ammunition = 25;
+  timeLimit = 30;
+  oldTimeStamp = null;
+  currentAmmunition = null;
+  currentTimer = null;
+  currentBoom = null;
+  currentLife = null;
+
+  respawn = {
+    enemy: {
+      lastDate: null,
+      time: {
+        min: 2000,
+        max: 3000
+      },
+      quantity: {
+        min: 1,
+        max: 1
+      },
+      size: 40,
+      velocity: 2,
+      limit: 30
+    },
+    ammunition: {
+      lastDate: null,
+      time: {
+        min: 4000,
+        max: 9000
+      },
+      quantity: 10
+    },
+    timer: {
+      lastDate: null,
+      time: {
+        min: 5000,
+        max: 7000
+      }
+    },
+    boom: {
+      lastDate: null,
+      time: {
+        min: null,
+        max: null
+      }
+    },
+    life: {
+      lastDate: null,
+      time: {
+        min: 12000,
+        max: 12000
+      }
+    }
+  }
+
+  startScreen = true;
+  stoppedGame = true;
+  statusGame = null;
+}
+
 function checkDifficulty() {
   switch (score) {
     case 5:
@@ -494,7 +574,6 @@ function checkDifficulty() {
       respawn.enemy.velocity = 1.4;
       respawn.enemy.limit = 45
       break;
-    
     case 800:
       respawn.enemy.quantity.min = 12;
       respawn.enemy.quantity.max = 12;
@@ -512,7 +591,7 @@ function checkDifficulty() {
       break;
     case 1000:
       stoppedGame = true;
-      // function youWin() here
+      setTimeout(() => statusGame = 'win', 1000);
       break;
   }
 }
@@ -521,7 +600,7 @@ function drawStartScreen() {
   // Scene
   background.draw(ctx, score, lifes, ammunition, timeLimit);
   
-  // Background
+  // Background screen
   ctx.shadowColor = 'black';
   ctx.shadowBlur = 5;
   ctx.shadowOffsetX = 2;
@@ -659,4 +738,106 @@ function drawStartScreen() {
   ctx.shadowBlur = 0;
   ctx.shadowOffsetX = 0;
   ctx.shadowOffsetY = 0;
+}
+
+function gameOver(type) {
+  let message, color;
+  if (type === "win") {
+    message = "YOU WIN!";
+    color = "#4DFF40";
+  } 
+  if (type === "lose") {
+    message = "YOU LOSE!";
+    color = "#FF4040";
+  } 
+
+  // Scene
+  background.draw(ctx, score, lifes, ammunition, timeLimit);
+
+  // Background screen
+  ctx.shadowColor = 'black';
+  ctx.shadowBlur = 5;
+  ctx.shadowOffsetX = 2;
+  ctx.shadowOffsetY = 2;
+  ctx.fillStyle = 'lightgray';
+  ctx.fillRect(175, 75, 450, 450);
+
+  // Background title
+  ctx.beginPath();
+  ctx.ellipse(400, 145, 55, 175, Math.PI / 2, 0, 2 * Math.PI);
+  ctx.fillStyle = color;
+  ctx.fill();
+
+  // YOU LOSE! / YOU WIN!
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.fillStyle = 'black';
+  ctx.font = 'bold 38px Verdana';
+  ctx.fillText(message, 400, 160);
+
+  // Score
+  ctx.fillStyle = 'black';
+  ctx.font = 'bold 22px Courier New';
+  ctx.fillText('SCORE:', 240, 230);
+
+  // Figures
+  ctx.fillStyle = 'red';
+  ctx.fillRect(243, 250, 30, 30);
+  ctx.beginPath();
+  ctx.arc(258, 300, 15, 0, 2 * Math.PI);
+  ctx.fillStyle = 'gold';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.fillStyle = 'blue';
+  ctx.moveTo(243, 320);
+  ctx.lineTo(274, 320);
+  ctx.lineTo(258.5, 346);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = 'darkgreen';
+  ctx.fillRect(243, 351, 30, 30);
+
+  // Amount
+  ctx.fillStyle = 'black';
+  ctx.textAlign = "center";
+  ctx.font = '20px Courier New';
+  ctx.fillText(score, 310, 270);
+  ctx.fillText(ammunition, 310, 305);
+  ctx.fillText(Math.round(timeLimit), 310, 340);
+  ctx.fillText(lifes, 310, 375);
+
+  // X score
+  ctx.fillText('X  100  --->', 430, 270);
+  ctx.fillText('X  50   --->', 430, 305);
+  ctx.fillText('X  500  --->', 430, 340);
+  ctx.fillText('X  1000 --->', 430, 375);
+
+  // Element total score
+  ctx.font = 'bold 20px Courier New';
+  ctx.fillText(score * 100, 560, 270);
+  ctx.fillText(ammunition * 50, 560, 305);
+  ctx.fillText(Math.round(timeLimit) * 500, 560, 340);
+  ctx.fillText(lifes * 1000, 560, 375);
+
+  // Total
+  ctx.fillStyle = 'black';
+  ctx.font = 'bold 22px Courier New';
+  ctx.fillText('TOTAL:', 240, 430);
+
+  // Background total score
+  ctx.beginPath();
+  ctx.ellipse(400, 425, 25, 80, Math.PI / 2, 0, 2 * Math.PI);
+  ctx.fillStyle = '#03BDE8';
+  ctx.fill();
+
+  // Global Total Score
+  ctx.fillStyle = 'black';
+  ctx.font = 'bold 28px Verdana';
+  ctx.fillText((score * 100) + (ammunition * 50) + (Math.round(timeLimit) * 500) + (lifes * 1000), 400, 435);
+
+  // Press space to start
+  ctx.fillStyle = 'black';
+  ctx.font = 'bold 21px Arial';
+  ctx.fillText('Press the space bar to restart', 400, 490);
 }
