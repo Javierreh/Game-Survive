@@ -51,8 +51,8 @@ const respawn = {
   ammunition: {
     lastDate: null,
     time: {
-      min: 3000,
-      max: 8000
+      min: 4000,
+      max: 9000
     },
     quantity: 10
   },
@@ -73,8 +73,8 @@ const respawn = {
   life: {
     lastDate: null,
     time: {
-      min: 10000,
-      max: 10000
+      min: 12000,
+      max: 12000
     }
   }
 };
@@ -423,13 +423,12 @@ function checkDifficulty() {
     case 75:
       respawn.enemy.time.min = 1250;
       respawn.enemy.time.max = 7000;
-      respawn.ammunition.time.min = 1000;
-      respawn.ammunition.time.max = 5000;
+      respawn.ammunition.time.min = 4000;
+      respawn.ammunition.time.max = 6000;
       break;
     case 90:
       respawn.enemy.time.min = 2000;
       respawn.enemy.time.max = 5000;
-      respawn.ammunition.time.max = 2500;
       respawn.boom.time.min = 12000;
       respawn.boom.time.max = 15000;
       break;
@@ -444,8 +443,6 @@ function checkDifficulty() {
       respawn.enemy.time.max = 3500;
       respawn.enemy.quantity.min = 1;
       respawn.enemy.quantity.max = 3;
-      respawn.ammunition.time.min = 2500;
-      respawn.ammunition.time.max = 5000;
       respawn.boom.time.min = 6000;
       respawn.boom.time.max = 9000;
       break;
@@ -453,15 +450,14 @@ function checkDifficulty() {
       respawn.enemy.time.min = 1500;
       respawn.enemy.time.max = 7000;
       respawn.enemy.quantity.max = 4;
-      respawn.ammunition.time.min = 1000;
-      respawn.ammunition.time.max = 3000;
+      respawn.ammunition.time.min = 3000;
+      respawn.ammunition.time.max = 4000;
       respawn.boom.time.min = 5000;
       respawn.boom.time.max = 7000;
       break;
     case 175:
       respawn.enemy.time.min = 1250;
       respawn.enemy.time.max = 8000;
-      respawn.ammunition.time.max = 2500;
       respawn.boom.time.min = 4000;
       respawn.boom.time.max = 6000;
       respawn.enemy.velocity = 1.8;
@@ -469,15 +465,14 @@ function checkDifficulty() {
     case 200:
       respawn.enemy.time.min = 1000;
       respawn.enemy.time.max = 9000;
-
       respawn.enemy.quantity.max = 5;
-      respawn.ammunition.time.min = 2000;
-      respawn.ammunition.time.max = 4000;
+      respawn.ammunition.time.min = 4000;
+      respawn.ammunition.time.max = 5000;
       respawn.ammunition.quantity = 20;
       respawn.boom.time.min = 4000;
       respawn.boom.time.max = 6000;
-      respawn.life.time.min = 5000;
-      respawn.life.time.max = 5000;
+      respawn.life.time.min = 6000;
+      respawn.life.time.max = 6000;
       respawn.timer.time.min = 4000;
       respawn.timer.time.min = 5000;
       respawn.enemy.velocity = 1.6;
@@ -487,12 +482,12 @@ function checkDifficulty() {
       respawn.enemy.time.max = 2000;
       respawn.enemy.quantity.min = 8;
       respawn.enemy.quantity.max = 8;
-      respawn.ammunition.time.min = 2000;
-      respawn.ammunition.time.max = 3000;
+      respawn.ammunition.time.min = 3500;
+      respawn.ammunition.time.max = 4500;
       respawn.boom.time.min = 8000;
       respawn.boom.time.max = 8000;
-      respawn.life.time.min = 2000;
-      respawn.life.time.max = 3500;
+      respawn.life.time.min = 4000;
+      respawn.life.time.max = 5500;
       respawn.timer.time.min = 3000;
       respawn.timer.time.min = 5000;
       respawn.enemy.size = 30;
@@ -503,10 +498,14 @@ function checkDifficulty() {
     case 800:
       respawn.enemy.quantity.min = 12;
       respawn.enemy.quantity.max = 12;
+      respawn.ammunition.time.min = 4000;
+      respawn.ammunition.time.max = 5000;
       respawn.enemy.time.min = 1500;
       respawn.enemy.time.max = 1500;
       respawn.boom.time.min = 3000;
       respawn.boom.time.max = 4000;
+      respawn.life.time.min = 5000;
+      respawn.life.time.max = 6500;
       respawn.enemy.size = 20;
       respawn.enemy.velocity = 1.8;
       respawn.enemy.limit = 60
